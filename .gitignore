@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.pyc
 
 # Distribution / packaging
 .Python
@@ -193,6 +194,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+.pyc
+.__pycache__/
 
 # Cursor
 #  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
