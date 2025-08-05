@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Option Scanner</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 30px;
+        background-color: #f9f9f9;
+      }
+
+      form > div {
+        margin-bottom: 15px;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      .checkbox-group,
+      .radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 5px;
+      }
+
+      button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        border: none;
+        color: white;
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .summary table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .summary th,
+      .summary td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+      }
+
+      .summary th {
+        background-color: #f2f2f2;
+      }
+
+      .summary tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      .totals {
+        margin-top: 15px;
+        font-weight: bold;
+        color: green;
+        font-size: 1.05em;
+      }
+
+      .no-results {
+        margin-top: 20px;
+        font-style: italic;
+        color: #777;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Options Scanner</h1>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Symbols (checkboxes) -->
+      <div>
+        <label for="id_symbols">Select Symbols:</label>
+        <div class="checkbox-group">
+          {% for checkbox in form.symbols %}
+          <label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Query date -->
+      <div>{{ form.query_date.label_tag }} {{ form.query_date }}</div>
+
+      <!-- Expiration date -->
+      <div>{{ form.expiration_date.label_tag }} {{ form.expiration_date }}</div>
+
+      <!-- Delta target -->
+      <div>{{ form.delta_target.label_tag }} {{ form.delta_target }}</div>
+
+      <!-- Option type (radio: put/call) -->
+      <div>
+        {{ form.option_type.label_tag }}
+        <div class="radio-group">
+          {% for radio in form.option_type %}
+          <label>{{ radio.tag }} {{ radio.choice_label }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit">Scan</button>
+    </form>
+
+    {% if results %}
+    <div class="summary">
+      <h2>Results</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Strike</th>
+            <th>Expiration</th>
+            <th>Delta</th>
+            <th>Premium</th>
+            <th>Collateral</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in results %}
+          <tr>
+            <td>{{ row.Symbol }}</td>
+            <td>{{ row.Strike|floatformat:2 }}</td>
+            <td>{{ row.Expiration }}</td>
+            <td>{{ row.Delta }}</td>
+            <td>${{ row.Premium|floatformat:2 }}</td>
+            <td>${{ row.Strike|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight: bold; background-color: #f9f9f9">
+            <td colspan="4">TOTALS</td>
+            <td>${{ total_premium|floatformat:2 }}</td>
+            <td>${{ total_collateral|floatformat:2 }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% else %}
+    <p class="no-results">No results returned.</p>
+    {% endif %}
+  </body>
+</html>
