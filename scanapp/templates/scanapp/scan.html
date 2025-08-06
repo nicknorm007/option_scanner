@@ -74,6 +74,25 @@
         font-style: italic;
         color: #777;
       }
+      .totals-row {
+        background-color: rgb(193, 196, 215);
+        font-weight: bold;
+      }
+      .lower-prevclose {
+        background-color: #f8d7da; /* light red/pink shade */
+        color: #721c24; /* dark red text for contrast */
+        border: 10px solid #ddd;
+      }
+      .higher-prevclose {
+        background-color: #d4edda;
+        color: #155724;
+        border: 10px solid #ddd;
+      }
+      .equal-prevclose {
+        background-color: #fff3cd; /* light yellow */
+        color: #856404;
+        border: 10px solid #ddd;
+      }
     </style>
   </head>
   <body>
@@ -122,6 +141,8 @@
           <tr>
             <th>Symbol</th>
             <th>Strike</th>
+            <th>Price (15 min) ($)</th>
+            <th>Daily Close ($)</th>
             <th>Expiration</th>
             <th>Delta</th>
             <th>Premium</th>
@@ -133,16 +154,22 @@
           <tr>
             <td>{{ row.Symbol }}</td>
             <td>{{ row.Strike|floatformat:2 }}</td>
+            <td
+              class="{% if row.PrevClose < row.DailyClose %}lower-prevclose {% elif row.PrevClose > row.DailyClose %}higher-prevclose {% else %}equal-prevclose{% endif %}"
+            >
+              ${{ row.PrevClose|floatformat:2 }}
+            </td>
+            <td>${{ row.DailyClose|floatformat:2 }}</td>
             <td>{{ row.Expiration }}</td>
             <td>{{ row.Delta }}</td>
             <td>${{ row.Premium|floatformat:2 }}</td>
-            <td>${{ row.Strike|floatformat:2 }}</td>
+            <td>${{ row.Collateral|floatformat:2 }}</td>
           </tr>
           {% endfor %}
         </tbody>
         <tfoot>
-          <tr style="font-weight: bold; background-color: #f9f9f9">
-            <td colspan="4">TOTALS</td>
+          <tr class="totals-row">
+            <td colspan="6"></td>
             <td>${{ total_premium|floatformat:2 }}</td>
             <td>${{ total_collateral|floatformat:2 }}</td>
           </tr>
