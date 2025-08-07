@@ -1,15 +1,26 @@
 from django import forms
 
-SYMBOL_CHOICES = [
-    ('HOOD', 'HOOD'), ('IREN', 'IREN'), ('SOFI', 'SOFI'), ('CELH', 'CELH'),
-    ('AFRM', 'AFRM'), ('PLTR', 'PLTR'), ('AMD', 'AMD'), ('CHWY', 'CHWY'),
-    ('HIMS', 'HIMS'), ('IBIT', 'IBIT'), ('BULL', 'BULL'), ('RDDT', 'RDDT'),
-    ('SBUX', 'SBUX'), ('RKLB', 'RKLB'), ('UBER', 'UBER'), ('AMZN', 'AMZN')
-]
+import csv
+import os
+from django import forms
+
+def load_symbol_choices():
+    symbol_choices = []
+    csv_path = os.path.join(os.path.dirname(__file__), "symbols.csv")
+    try:
+        with open(csv_path, newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                symbol = row.get("symbol")
+                if symbol:
+                    symbol_choices.append((symbol, symbol))
+    except FileNotFoundError:
+        print(f"symbols.csv not found at {csv_path}")
+    return symbol_choices
 
 class OptionScanForm(forms.Form):
     symbols = forms.MultipleChoiceField(
-        choices=SYMBOL_CHOICES,
+        choices=load_symbol_choices(),
         widget=forms.CheckboxSelectMultiple,
         required=True
     )

@@ -1,14 +1,61 @@
 # scanapp/option_scan.py
 import os
 import requests
+import csv
+from datetime import datetime
+from typing import Optional
+from .utils import get_alpha_vantage_api_key
+
+API_KEY = get_alpha_vantage_api_key()
+
+def _get_next_earnings_date(symbol: str) -> Optional[str]:
+    """
+    Fetch next earnings date for a given symbol from a CSV.
+    The CSV must have a header and look like:
+    ['symbol', 'name', 'reportDate', ...]
+    """
+      
+    csv_url = f"https://www.alphavantage.co/query?function=EARNINGS_CALENDAR&symbol={symbol}&horizon=12month&apikey={API_KEY}"
+    try:
+        with requests.Session() as s:
+            r = s.get(csv_url, timeout=20)
+            r.raise_for_status()
+            decoded = r.content.decode("utf-8", errors="replace")
+            reader = csv.reader(decoded.splitlines(), delimiter=",")
+            rows = list(reader)
+
+            for row in rows:
+                if not row or len(row) < 3:
+                    continue
+                if row[0].strip().lower() == "symbol":
+                    continue  # skip header
+
+                row_symbol = row[0].strip().upper()
+                if row_symbol != symbol.strip().upper():
+                    continue
+
+                earnings_date = row[2].strip()
+                if not earnings_date:
+                    return None
+
+                # Format to ISO date if valid
+                try:
+                    dt = datetime.strptime(earnings_date, "%Y-%m-%d")
+                    return dt.strftime("%Y-%m-%d")
+                except ValueError:
+                    return earnings_date 
+                  
+            return None  # not found
+
+    except Exception:
+        return None
+
 
 def _get_prev_close(symbol: str) -> float | None:
     """GLOBAL_QUOTE: previous close (15-min delayed context)."""
-    api_key = os.environ.get("ALPHA_VANTAGE_API_KEY", "")
-    if not api_key:
-        raise ValueError("ALPHA_VANTAGE_API_KEY not found in environment.")
+    
     try:
-        url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&entitlement=delayed&apikey={api_key}"
+        url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&entitlement=delayed&apikey={API_KEY}"
         r = requests.get(url, timeout=15)
         r.raise_for_status()
         data = r.json()
@@ -21,11 +68,9 @@ def _get_prev_close(symbol: str) -> float | None:
 
 def _get_daily_latest_close(symbol: str) -> float | None:
     """TIME_SERIES_DAILY: latest trading day close."""
-    api_key = os.environ.get("ALPHA_VANTAGE_API_KEY", "")
-    if not api_key:
-        raise ValueError("ALPHA_VANTAGE_API_KEY not found in environment.")
+    
     try:
-        url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize=compact&apikey={api_key}"
+        url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize=compact&apikey={API_KEY}"
         r = requests.get(url, timeout=20)
         r.raise_for_status()
         data = r.json()
@@ -39,22 +84,20 @@ def _get_daily_latest_close(symbol: str) -> float | None:
         return None
 
 def scan_options(symbols, query_date, expiration_date, delta_target, option_type):
-    api_key = os.environ.get("ALPHA_VANTAGE_API_KEY", "")
-    if not api_key:
-        raise ValueError("ALPHA_VANTAGE_API_KEY not found in environment.")
-
+    
     summary_rows = []
 
     for symbol in symbols:
         # --- quotes
         prev_close = _get_prev_close(symbol)            # from GLOBAL_QUOTE (15m delayed context)
         daily_close = _get_daily_latest_close(symbol)   # from TIME_SERIES_DAILY (latest daily close)
+        earnings_date = _get_next_earnings_date(symbol)
 
         # --- options (HISTORICAL_OPTIONS)
         opt_url = (
             f"https://www.alphavantage.co/query?"
             f"function=HISTORICAL_OPTIONS&symbol={symbol}&date={query_date}"
-            f"&entitlement=delayed&apikey={api_key}"
+            f"&entitlement=delayed&apikey={API_KEY}"
         )
 
         try:
@@ -91,6 +134,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                     "Delta": best["delta"],
                     "Premium": premium,
                     "Collateral": collateral,
+                    "EarningsDate": earnings_date,
                 })
             else:
                 summary_rows.append({
@@ -102,6 +146,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                     "Delta": "",
                     "Premium": 0.0,
                     "Collateral": 0.0,
+                    "EarningsDate": earnings_date,
                 })
 
         except requests.exceptions.RequestException:
@@ -114,6 +159,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                 "Delta": "",
                 "Premium": 0.0,
                 "Collateral": 0.0,
+                "EarningsDate": earnings_date,
             })
 
     total_premium = round(sum(row["Premium"] for row in summary_rows), 2)
