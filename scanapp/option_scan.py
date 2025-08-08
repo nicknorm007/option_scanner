@@ -8,6 +8,40 @@ from .utils import get_alpha_vantage_api_key
 
 API_KEY = get_alpha_vantage_api_key()
 
+def _get_avg_sentiment(symbol: str) -> Optional[float]:
+    """
+    Fetch the average overall_sentiment_score for a given symbol
+    from Alpha Vantage's NEWS_SENTIMENT endpoint.
+    """
+    try:
+        url = (
+            f"https://www.alphavantage.co/query?"
+            f"function=NEWS_SENTIMENT&tickers={symbol}&apikey={API_KEY}"
+        )
+        r = requests.get(url, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        
+        feed = data.get("feed", [])
+        if not feed:
+            return None
+        
+        scores = [
+            float(item.get("overall_sentiment_score"))
+            for item in feed
+            if item.get("overall_sentiment_score") is not None
+        ]
+        
+        if not scores:
+            return None
+        
+        avg_score = sum(scores) / len(scores)
+        return round(avg_score, 4)  # 4 decimal places for precision
+    
+    except Exception:
+        return None
+
+
 def _get_next_earnings_date(symbol: str) -> Optional[str]:
     """
     Fetch next earnings date for a given symbol from a CSV.
@@ -92,6 +126,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
         prev_close = _get_prev_close(symbol)            # from GLOBAL_QUOTE (15m delayed context)
         daily_close = _get_daily_latest_close(symbol)   # from TIME_SERIES_DAILY (latest daily close)
         earnings_date = _get_next_earnings_date(symbol)
+        avg_sentiment = _get_avg_sentiment(symbol)
 
         # --- options (HISTORICAL_OPTIONS)
         opt_url = (
@@ -137,6 +172,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                     "Premium": premium,
                     "Collateral": collateral,
                     "EarningsDate": earnings_date,
+                    "AvgSentiment": avg_sentiment,
                 })
             else:
                 summary_rows.append({
@@ -150,6 +186,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                     "Premium": 0.0,
                     "Collateral": 0.0,
                     "EarningsDate": earnings_date,
+                    "AvgSentiment": avg_sentiment,
                 })
 
         except requests.exceptions.RequestException:
@@ -164,6 +201,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                 "Premium": 0.0,
                 "Collateral": 0.0,
                 "EarningsDate": earnings_date,
+                "AvgSentiment": avg_sentiment,
             })
 
     total_premium = round(sum(row["Premium"] for row in summary_rows), 2)
