@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -133,6 +134,12 @@
       .sentiment-bullish {
         background-color: #ccffcc;
       }
+      th.asc::after {
+        content: " ▲";
+      }
+      th.desc::after {
+        content: " ▼";
+      }
     </style>
   </head>
   <body>
@@ -185,17 +192,17 @@
       <table>
         <thead>
           <tr>
-            <th>Symbol</th>
-            <th>Strike</th>
-            <th>Option</th>
-            <th>Price (15 min) ($)</th>
-            <th>Daily Close ($)</th>
-            <th>Expiration</th>
-            <th>Delta</th>
-            <th>Premium</th>
-            <th>Collateral</th>
-            <th>Earnings</th>
-            <th>Avg Sentiment</th>
+            <th data-sort="string">Symbol</th>
+            <th data-sort="number">Strike</th>
+            <th data-sort="number">Option</th>
+            <th data-sort="number">Price (15 min) ($)</th>
+            <th data-sort="number">Daily Close ($)</th>
+            <th data-sort="string">Expiration</th>
+            <th data-sort="number">Delta</th>
+            <th data-sort="number">Premium</th>
+            <th data-sort="number">Collateral</th>
+            <th data-sort="string">Earnings</th>
+            <th data-sort="number">Avg Sentiment</th>
           </tr>
         </thead>
         <tbody>
@@ -229,7 +236,7 @@
         </tbody>
         <tfoot>
           <tr class="totals-row">
-            <td colspan="6"></td>
+            <td colspan="7"></td>
             <td>${{ total_premium|floatformat:2 }}</td>
             <td>${{ total_collateral|floatformat:2 }}</td>
           </tr>
@@ -253,5 +260,6 @@
           .forEach((cb) => (cb.checked = false));
       }
     </script>
+    <script src="{% static 'scanapp/js/sortable-table.js' %}"></script>
   </body>
 </html>
