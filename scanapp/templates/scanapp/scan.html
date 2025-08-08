@@ -111,6 +111,9 @@
         color: #856404;
         border: 1px solid #ddd;
       }
+      .upcoming-earnings {
+        background-color: #fffacd;
+      }
     </style>
   </head>
   <body>
@@ -165,6 +168,7 @@
           <tr>
             <th>Symbol</th>
             <th>Strike</th>
+            <th>Option</th>
             <th>Price (15 min) ($)</th>
             <th>Daily Close ($)</th>
             <th>Expiration</th>
@@ -179,6 +183,7 @@
           <tr>
             <td>{{ row.Symbol }}</td>
             <td>{{ row.Strike|floatformat:2 }}</td>
+            <td>{{ row.Price|floatformat:2 }}</td>
             <td
               class="{% if row.PrevClose < row.DailyClose %}lower-prevclose {% elif row.PrevClose > row.DailyClose %}higher-prevclose {% else %}equal-prevclose{% endif %}"
             >
@@ -189,7 +194,11 @@
             <td>{{ row.Delta }}</td>
             <td>${{ row.Premium|floatformat:2 }}</td>
             <td>${{ row.Collateral|floatformat:2 }}</td>
-            <td>{{ row.EarningsDate }}</td>
+            <td
+              class="{% if row.IsUpcomingEarnings %}upcoming-earnings{% endif %}"
+            >
+              {{ row.EarningsDate }}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

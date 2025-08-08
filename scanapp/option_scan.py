@@ -121,6 +121,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
             if best:
                 bid = float(best["bid"])
                 ask = float(best["ask"])
+                option_price = round(((bid + ask) / 2), 2)
                 strike = float(best["strike"])
                 premium = round(((bid + ask) / 2) * 100, 2)
                 collateral = round(strike * 100, 2)
@@ -128,6 +129,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                 summary_rows.append({
                     "Symbol": symbol,
                     "Strike": strike,
+                    "Price": option_price,
                     "PrevClose": prev_close,      # from GLOBAL_QUOTE
                     "DailyClose": daily_close,    # from TIME_SERIES_DAILY
                     "Expiration": best["expiration"],
@@ -140,6 +142,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
                 summary_rows.append({
                     "Symbol": symbol,
                     "Strike": 0.0,
+                    "Price": option_price,
                     "PrevClose": prev_close,
                     "DailyClose": daily_close,
                     "Expiration": "",
@@ -153,6 +156,7 @@ def scan_options(symbols, query_date, expiration_date, delta_target, option_type
             summary_rows.append({
                 "Symbol": symbol,
                 "Strike": 0.0,
+                "Price": option_price,
                 "PrevClose": prev_close,
                 "DailyClose": daily_close,
                 "Expiration": "",
