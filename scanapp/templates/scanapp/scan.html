@@ -114,6 +114,25 @@
       .upcoming-earnings {
         background-color: #fffacd;
       }
+      .sentiment-bearish {
+        background-color: #ffcccc;
+      }
+
+      .sentiment-somewhat-bearish {
+        background-color: #ffe6cc;
+      }
+
+      .sentiment-neutral {
+        background-color: #ffffcc;
+      }
+
+      .sentiment-somewhat-bullish {
+        background-color: #e6ffcc;
+      }
+
+      .sentiment-bullish {
+        background-color: #ccffcc;
+      }
     </style>
   </head>
   <body>
@@ -176,6 +195,7 @@
             <th>Premium</th>
             <th>Collateral</th>
             <th>Earnings</th>
+            <th>Avg Sentiment</th>
           </tr>
         </thead>
         <tbody>
@@ -198,6 +218,11 @@
               class="{% if row.IsUpcomingEarnings %}upcoming-earnings{% endif %}"
             >
               {{ row.EarningsDate }}
+            </td>
+            <td
+              class="{% if row.AvgSentiment != None %} {% if row.AvgSentiment <= -0.35 %}sentiment-bearish {% elif row.AvgSentiment > -0.35 and row.AvgSentiment <= -0.15 %}sentiment-somewhat-bearish {% elif row.AvgSentiment > -0.15 and row.AvgSentiment < 0.15 %}sentiment-neutral {% elif row.AvgSentiment >= 0.15 and row.AvgSentiment < 0.35 %}sentiment-somewhat-bullish {% elif row.AvgSentiment >= 0.35 %}sentiment-bullish {% endif %} {% endif %}"
+            >
+              {{ row.AvgSentiment|floatformat:2|default:"N/A" }}
             </td>
           </tr>
           {% endfor %}
