@@ -192,6 +192,7 @@
       <table>
         <thead>
           <tr>
+            <th>Select</th>
             <th data-sort="string">Symbol</th>
             <th data-sort="number">Strike</th>
             <th data-sort="number">Option</th>
@@ -208,6 +209,7 @@
         <tbody>
           {% for row in results %}
           <tr>
+            <td><input type="checkbox" class="row-checkbox" /></td>
             <td>{{ row.Symbol }}</td>
             <td>{{ row.Strike|floatformat:2 }}</td>
             <td>{{ row.Price|floatformat:2 }}</td>
@@ -236,9 +238,18 @@
         </tbody>
         <tfoot>
           <tr class="totals-row">
-            <td colspan="7"></td>
+            <td colspan="8"></td>
             <td>${{ total_premium|floatformat:2 }}</td>
             <td>${{ total_collateral|floatformat:2 }}</td>
+          </tr>
+          <tr
+            id="checked-totals-row"
+            class="totals-row"
+            style="display: none; background-color: #d0f0d0"
+          >
+            <td colspan="8">Checked Totals:</td>
+            <td id="checked-total-premium">$0.00</td>
+            <td id="checked-total-collateral">$0.00</td>
           </tr>
         </tfoot>
       </table>
@@ -261,5 +272,6 @@
       }
     </script>
     <script src="{% static 'scanapp/js/sortable-table.js' %}"></script>
+    <script src="{% static 'scanapp/js/checked-totals.js' %}"></script>
   </body>
 </html>
