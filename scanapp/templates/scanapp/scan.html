@@ -18,7 +18,24 @@
         font-weight: bold;
       }
 
-      .checkbox-group,
+      /* Symbols in rows of 5 */
+      .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(5, auto); /* 5 per row */
+        gap: 8px 16px; /* row gap / column gap */
+        margin-top: 5px;
+        align-items: center;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 6px;
+        background-color: #fff;
+      }
+
+      .checkbox-group label {
+        font-weight: bold;
+        white-space: nowrap;
+      }
+
       .radio-group {
         display: flex;
         flex-wrap: wrap;
